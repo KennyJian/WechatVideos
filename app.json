@@ -9,7 +9,7 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "阿键短视频test",
+    "navigationBarTitleText": "阿键短视频",
     "navigationBarTextStyle": "black"
   },
   "debug":true
