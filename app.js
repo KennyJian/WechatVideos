@@ -1,5 +1,11 @@
 //app.js
 App({
-  serverUrl: "http://3cc5202e.ngrok.io",
-  userInfo:null
+  serverUrl: "http://ac18bca7.ngrok.io",
+  userInfo:null,
+  setGlobalUserInfo(user){
+    wx.setStorageSync("userInfo", user)
+  },
+  getGlobalUserInfo() {
+    return wx.getStorageSync("userInfo")
+  }
 })

@@ -1,54 +1,81 @@
-//index.js
-//获取应用实例
 const app = getApp()
 
 Page({
   data: {
-    motto: 'Hello World',
-    userInfo: {},
-    hasUserInfo: false,
-    canIUse: wx.canIUse('button.open-type.getUserInfo')
+    //用于分页的属性
+    totalPage:1,
+    page:1,
+    videoList:[],
+    screenWidth: 350,
+    serverUrl:""
   },
-  //事件处理函数
-  bindViewTap: function() {
-    wx.navigateTo({
-      url: '../logs/logs'
-    })
+
+  onLoad: function (params) {
+    var me = this;
+    var screenWidth = wx.getSystemInfoSync().screenWidth;
+    me.setData({
+      screenWidth: screenWidth,
+    });
+
+    var page=me.data.page;
+    me.getAllVideoList(page);
+   
   },
-  onLoad: function () {
-    if (app.globalData.userInfo) {
-      this.setData({
-        userInfo: app.globalData.userInfo,
-        hasUserInfo: true
-      })
-    } else if (this.data.canIUse){
-      // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-      // 所以此处加入 callback 以防止这种情况
-      app.userInfoReadyCallback = res => {
-        this.setData({
-          userInfo: res.userInfo,
-          hasUserInfo: true
+
+  getAllVideoList(page){
+    var me = this;
+    var serverUrl = app.serverUrl;
+    wx.showLoading({
+      title: '加载中...',
+    });
+
+    wx.request({
+      url: serverUrl + '/video/showAll?page=' + page,
+      method: "POST",
+      success(res) {
+        wx.hideLoading();
+        wx.hideNavigationBarLoading();
+        wx.stopPullDownRefresh();
+        console.log(res.data)
+        //判断当前页是不是第一页,如果是第一页,那么设置videoList为空
+        if (page == 1) {
+          me.setData({
+            videoList: []
+          });
+        }
+        var videoList = res.data.data.rows;
+        var newVideoList = me.data.videoList;
+        me.setData({
+          videoList: newVideoList.concat(videoList),
+          page: page,
+          totalPage: res.data.data.total,
+          serverUrl: serverUrl
         })
       }
-    } else {
-      // 在没有 open-type=getUserInfo 版本的兼容处理
-      wx.getUserInfo({
-        success: res => {
-          app.globalData.userInfo = res.userInfo
-          this.setData({
-            userInfo: res.userInfo,
-            hasUserInfo: true
-          })
-        }
-      })
-    }
-  },
-  getUserInfo: function(e) {
-    console.log(e)
-    app.globalData.userInfo = e.detail.userInfo
-    this.setData({
-      userInfo: e.detail.userInfo,
-      hasUserInfo: true
     })
+  },
+
+  onReachBottom(){
+    var me=this;
+    var currentPage=me.data.page;
+    var totalPage = me.data.totalPage;
+    console.log(currentPage);
+    console.log(totalPage);
+    //判断当前页数合总页数是否相等,如果相等则无需查询
+    if (currentPage === totalPage){
+      wx.showToast({
+        title: '已经没有视频啦~~',
+        icon:"none"
+      });
+      return;
+    }
+
+    var page=currentPage+1;
+    me.getAllVideoList(page);
+  },
+
+  onPullDownRefresh(){
+    wx.showNavigationBarLoading();
+    this.getAllVideoList(1);
   }
 })
