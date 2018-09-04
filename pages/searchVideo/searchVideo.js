@@ -1,23 +1,41 @@
+const app = getApp()
 // 1 导入js文件
 var WxSearch = require('../../wxSearchView/wxSearchView.js');
 
 Page({
 
-  data: {},
+  data: {
+    hotList:[]
+  },
 
 
   onLoad: function () {
 
     // 2 搜索栏初始化
-    var that = this;
-    WxSearch.init(
-      that,  // 本页面一个引用
-      ['小程序', 'java', "zookeeper", "springboot2","redis"], // 热点搜索推荐，[]表示不使用
-      [],// 搜索匹配，[]表示不使用
-      that.mySearchFunction, // 提供一个搜索回调函数
-      that.myGobackFunction //提供一个返回回调函数
-    );
+    var me = this;
 
+    //查询热搜词
+    wx.request({
+      url: app.serverUrl+'/video/hot',
+      method: "POST",
+      header: {
+        'content-type': 'application/json' // 默认值
+      },
+      success: function (res) {
+        if (res.data.status==200){
+          console.log(res.data.data);
+          var hotList=res.data.data;
+          WxSearch.init(
+            me,  // 本页面一个引用
+            // ['小程序', 'java', "zookeeper", "springboot2", "redis"], // 热点搜索推荐，[]表示不使用
+            hotList,
+            hotList,// 搜索匹配，[]表示不使用
+            me.mySearchFunction, // 提供一个搜索回调函数
+            me.myGobackFunction //提供一个返回回调函数
+          );
+        }
+      }
+    })
   },
 
   // 3 转发函数，固定部分，直接拷贝即可

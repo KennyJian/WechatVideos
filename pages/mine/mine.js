@@ -10,12 +10,14 @@ Page({
   },
   onLoad(){
     var me=this;
-    var user=app.userInfo;
+    // var user=app.userInfo;
+    //fixme 修改原有的全局对象为本地缓存
+    var user = app.getGlobalUserInfo();
     wx.showLoading({
       title: '正在加载数据...',
     })
     wx.request({
-      url: app.serverUrl + '/user/query?userId='+app.userInfo.id,
+      url: app.serverUrl + '/user/query?userId=' + app.getGlobalUserInfo().id,
       method: "POST",
       header: {
         'content-type': 'application/json' // 默认值
@@ -30,24 +32,24 @@ Page({
             duration: 3000
           })
         } else if (res.data.status == 200) {
-          app.userInfo = res.data.data;
+          app.setGlobalUserInfo(res.data.data);
           var faceUrl="../resource/images/noneface.png";
-          if(app.userInfo.faceImage!=null&&app.userInfo.faceImage!=''&&app.userInfo.faceImage!=undefined){
-            faceUrl = app.serverUrl + app.userInfo.faceImage
+          if (app.getGlobalUserInfo().faceImage != null && app.getGlobalUserInfo().faceImage != '' && app.getGlobalUserInfo().faceImage!=undefined){
+            faceUrl = app.serverUrl + app.getGlobalUserInfo().faceImage
           }
           me.setData({
             faceUrl: faceUrl,
-            fansCounts: app.userInfo.fansCounts,
-            followCounts: app.userInfo.followCounts,
-            receiveLikeCounts: app.userInfo.receiveLikeCounts,
+            fansCounts: app.getGlobalUserInfo().fansCounts,
+            followCounts: app.getGlobalUserInfo().followCounts,
+            receiveLikeCounts: app.getGlobalUserInfo().receiveLikeCounts,
           })
         }
       }
     })
   },
   logout(){    
-    if (app.userInfo!=null){
-      var user = app.userInfo;
+    if (app.getGlobalUserInfo()!=null){
+      var user = app.getGlobalUserInfo();
       wx.showLoading({
         title: '请等待...',
       })
@@ -67,7 +69,7 @@ Page({
               icon: 'success',
               duration: 3000
             })
-            app.userInfo = null;
+            wx.removeStorageSync('userInfo');
             wx.navigateTo({
               url: '../userLogin/login',
             })
@@ -101,7 +103,7 @@ Page({
           title: '上传中...',
         })
         wx.uploadFile({
-          url: app.serverUrl + '/user/uploadFace?userId=' + app.userInfo.id, 
+          url: app.serverUrl + '/user/uploadFace?userId=' + app.getGlobalUserInfo().id, 
           filePath: tempFilePaths[0],
           name: 'file',
           success: function (res) {
